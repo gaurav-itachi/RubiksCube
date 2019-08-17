@@ -153,11 +153,11 @@ class RubiksCube():
 		self.faces[2].cubelets[2,:] = self.faces[3].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape)
 		self.faces[3].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape)	
 		self.faces[5].cubelets[0,:] =  tmp
-		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
-		self.faces[0].cubelets[0,:] = self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape)
-		self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
-		self.faces[4].cubelets[2,:] = self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape)
-		self.faces[3].cubelets[:,2] = tmp
+		# tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
+		# self.faces[0].cubelets[0,:] = self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape)
+		# self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
+		# self.faces[4].cubelets[2,:] = self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape)
+		# self.faces[3].cubelets[:,2] = tmp
 		pass
 	def Front(self):
 		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[1].cubelets[:,0].shape).copy()
