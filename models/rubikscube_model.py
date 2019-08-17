@@ -42,18 +42,27 @@ class model(Model):
 	def __init__(self):
 		super().__init__()
 		self.rubikscube = RubiksCube()
+		self.controller_board = ControllerBoard()
 		pass
 
 	def get_draw_content(self):
-		return self.rubikscube.get_draw_content()
-		pass
+		draw_content = []
+		draw_content.extend(self.rubikscube.get_draw_content())
+		draw_content.extend(self.controller_board.get_draw_content())
+		return draw_content
 
 	def make_move(self,move):
 		self.rubikscube.make_move(move)
 
+	def check_click(self,pos):
+		click_x,click_y = pos
+		move = self.controller_board.check_click(click_x,click_y)
+		print(move)
+		self.make_move(move)
+
 	def update(self,time_passed):
-		
 		pass
+
 
 class RubiksCube():
 	def __init__(self):
@@ -98,7 +107,8 @@ class RubiksCube():
 		self.faces[2].cubelets[:,0] = self.faces[4].cubelets[:,0]
 		self.faces[4].cubelets[:,0] = self.faces[5].cubelets[:,0]
 		self.faces[5].cubelets[:,0] = tmp
-
+		# rotating corresponding face by 90
+		self.faces[1].cubelets[:,:] = np.rot90(self.faces[1].cubelets[:,:],1,(1,0))
 		
 	def LeftReverse(self):
 		tmp = self.faces[0].cubelets[:,0].copy()
@@ -106,6 +116,7 @@ class RubiksCube():
 		self.faces[5].cubelets[:,0] = self.faces[4].cubelets[:,0]
 		self.faces[4].cubelets[:,0] = self.faces[2].cubelets[:,0]
 		self.faces[2].cubelets[:,0] = tmp
+		self.faces[1].cubelets[:,:] = np.rot90(self.faces[1].cubelets[:,:],1,(0,1))
 		pass
 	def Right(self):
 		tmp = self.faces[0].cubelets[:,2].copy()
@@ -113,6 +124,9 @@ class RubiksCube():
 		self.faces[2].cubelets[:,2] = self.faces[4].cubelets[:,2]
 		self.faces[4].cubelets[:,2] = self.faces[5].cubelets[:,2]
 		self.faces[5].cubelets[:,2] = tmp
+		# rotating corresponding face by 90
+		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(0,1))
+
 		pass
 	def RightReverse(self):
 		tmp = self.faces[0].cubelets[:,2].copy()
@@ -120,77 +134,75 @@ class RubiksCube():
 		self.faces[5].cubelets[:,2] = self.faces[4].cubelets[:,2]
 		self.faces[4].cubelets[:,2] = self.faces[2].cubelets[:,2]
 		self.faces[2].cubelets[:,2] = tmp
+		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(1,0))
 		pass
 	def Top(self):
-		tmp = self.faces[0].cubelets[2,:].reshape(self.faces[3].cubelets[:,0].shape).copy()
-		self.faces[0].cubelets[2,:] = self.faces[1].cubelets[:,2].reshape(self.faces[0].cubelets[2,:].shape)
-		self.faces[1].cubelets[:,2] = self.faces[4].cubelets[0,:].reshape(self.faces[1].cubelets[:,2].shape)
-		self.faces[4].cubelets[0,:] = self.faces[3].cubelets[:,0].reshape(self.faces[4].cubelets[0,:].shape)
-		self.faces[3].cubelets[:,0] = tmp
+		tmp = np.flip(self.faces[1].cubelets[0,:].reshape(self.faces[5].cubelets[2,:].shape).copy(),1)
+		self.faces[1].cubelets[0,:] = self.faces[2].cubelets[0,:].reshape(self.faces[1].cubelets[0,:].shape)
+		self.faces[2].cubelets[0,:] = self.faces[3].cubelets[0,:].reshape(self.faces[2].cubelets[0,:].shape)
+		self.faces[3].cubelets[0,:] = np.flip(self.faces[5].cubelets[2,:].reshape(self.faces[3].cubelets[0,:].shape),1)
+		self.faces[5].cubelets[2,:] =  tmp
+		self.faces[0].cubelets[:,:] = np.rot90(self.faces[0].cubelets[:,:],1,(1,0))
 		pass
 	def TopReverse(self):
-		tmp = self.faces[0].cubelets[2,:].reshape(self.faces[1].cubelets[:,2].shape).copy()
-		self.faces[0].cubelets[2,:] = self.faces[3].cubelets[:,0].reshape(self.faces[0].cubelets[2,:].shape)
-		self.faces[3].cubelets[:,0] = self.faces[4].cubelets[0,:].reshape(self.faces[3].cubelets[:,0].shape)
-		self.faces[4].cubelets[0,:] = self.faces[1].cubelets[:,2].reshape(self.faces[4].cubelets[0,:].shape)
-		self.faces[1].cubelets[:,2] = tmp
+		tmp = self.faces[1].cubelets[0,:].reshape(self.faces[2].cubelets[0,:].shape).copy()
+		self.faces[1].cubelets[0,:] = np.flip(self.faces[5].cubelets[2,:].reshape(self.faces[1].cubelets[0,:].shape),1)
+		self.faces[5].cubelets[2,:] = np.flip(self.faces[3].cubelets[0,:].reshape(self.faces[5].cubelets[2,:].shape),1)
+		self.faces[3].cubelets[0,:] = self.faces[2].cubelets[0,:].reshape(self.faces[3].cubelets[0,:].shape)	
+		self.faces[2].cubelets[0,:] = tmp
+		self.faces[0].cubelets[:,:] = np.rot90(self.faces[0].cubelets[:,:],1,(0,1))
+
 		pass
 	def Bottom(self):
 		tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
-		self.faces[1].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[1].cubelets[2,:].shape)
-		self.faces[5].cubelets[0,:] = self.faces[3].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape)
+		self.faces[1].cubelets[2,:] = np.flip(self.faces[5].cubelets[0,:].reshape(self.faces[1].cubelets[2,:].shape),1)
+		self.faces[5].cubelets[0,:] = np.flip(self.faces[3].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape),1)
 		self.faces[3].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[3].cubelets[2,:].shape)
 		self.faces[2].cubelets[2,:] = tmp
-		# tmp = self.faces[0].cubelets[0,:].reshape(self.faces[1].cubelets[:,0].shape).copy()
-		# self.faces[0].cubelets[0,:] = self.faces[3].cubelets[:,2].reshape(self.faces[0].cubelets[0,:].shape)
-		# self.faces[3].cubelets[:,2] = self.faces[4].cubelets[2,:].reshape(self.faces[3].cubelets[:,2].shape)
-		# self.faces[4].cubelets[2,:] = self.faces[1].cubelets[:,0].reshape(self.faces[4].cubelets[2,:].shape)
-		# self.faces[1].cubelets[:,0] = tmp
+		self.faces[4].cubelets[:,:] = np.rot90(self.faces[4].cubelets[:,:],1,(1,0))
+
 		pass
 	def BottomReverse(self):
-		tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
+		tmp = np.flip(self.faces[1].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape).copy(),1)
 		self.faces[1].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[1].cubelets[2,:].shape)
 		self.faces[2].cubelets[2,:] = self.faces[3].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape)
-		self.faces[3].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape)	
+		self.faces[3].cubelets[2,:] = np.flip(self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape),1)	
 		self.faces[5].cubelets[0,:] =  tmp
-		# tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
-		# self.faces[0].cubelets[0,:] = self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape)
-		# self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
-		# self.faces[4].cubelets[2,:] = self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape)
-		# self.faces[3].cubelets[:,2] = tmp
+		self.faces[4].cubelets[:,:] = np.rot90(self.faces[4].cubelets[:,:],1,(0,1))
 		pass
 	def Front(self):
-		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[1].cubelets[:,0].shape).copy()
-		self.faces[0].cubelets[0,:] = self.faces[3].cubelets[:,2].reshape(self.faces[0].cubelets[0,:].shape)
-		self.faces[3].cubelets[:,2] = self.faces[4].cubelets[2,:].reshape(self.faces[3].cubelets[:,2].shape)
-		self.faces[4].cubelets[2,:] = self.faces[1].cubelets[:,0].reshape(self.faces[4].cubelets[2,:].shape)
-		self.faces[1].cubelets[:,0] = tmp
-		# tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
-		# self.faces[1].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[1].cubelets[2,:].shape)
-		# self.faces[5].cubelets[0,:] = self.faces[3].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape)
-		# self.faces[3].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[3].cubelets[2,:].shape)
-		# self.faces[2].cubelets[2,:] = tmp
+		tmp = self.faces[0].cubelets[2,:].reshape(self.faces[3].cubelets[:,0].shape).copy()
+		self.faces[0].cubelets[2,:] = np.flip(self.faces[1].cubelets[:,2].reshape(self.faces[0].cubelets[2,:].shape),1)
+		self.faces[1].cubelets[:,2] = self.faces[4].cubelets[0,:].reshape(self.faces[1].cubelets[:,2].shape)
+		self.faces[4].cubelets[0,:] = np.flip(self.faces[3].cubelets[:,0].reshape(self.faces[4].cubelets[0,:].shape),1)
+		self.faces[3].cubelets[:,0] = tmp
+		self.faces[2].cubelets[:,:] = np.rot90(self.faces[2].cubelets[:,:],1,(1,0))
 		pass
 	def FrontReverse(self):
-		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
-		self.faces[0].cubelets[0,:] = self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape)
-		self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
-		self.faces[4].cubelets[2,:] = self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape)
-		self.faces[3].cubelets[:,2] = tmp
-		# tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
-		# self.faces[1].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[1].cubelets[2,:].shape)
-		# self.faces[2].cubelets[2,:] = self.faces[3].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape)
-		# self.faces[3].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape)	
-		# self.faces[5].cubelets[0,:] =  tmp
+		tmp = np.flip(self.faces[0].cubelets[2,:].reshape(self.faces[1].cubelets[:,2].shape).copy(),0)
+		self.faces[0].cubelets[2,:] = self.faces[3].cubelets[:,0].reshape(self.faces[0].cubelets[2,:].shape)
+		self.faces[3].cubelets[:,0] = np.flip(self.faces[4].cubelets[0,:].reshape(self.faces[3].cubelets[:,0].shape),0)
+		self.faces[4].cubelets[0,:] = self.faces[1].cubelets[:,2].reshape(self.faces[4].cubelets[0,:].shape)
+		self.faces[1].cubelets[:,2] = tmp		
+		self.faces[2].cubelets[:,:] = np.rot90(self.faces[2].cubelets[:,:],1,(0,1))
 		pass
+
+
 	def Back(self):
-		tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
-		self.faces[1].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[1].cubelets[2,:].shape)
-		self.faces[2].cubelets[2,:] = self.faces[3].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape)
-		self.faces[3].cubelets[2,:] = self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape)	
-		self.faces[5].cubelets[0,:] =  tmp
+		tmp = np.flip(self.faces[0].cubelets[0,:].reshape(self.faces[1].cubelets[:,0].shape).copy(),0)
+		self.faces[0].cubelets[0,:] = self.faces[3].cubelets[:,2].reshape(self.faces[0].cubelets[0,:].shape)
+		self.faces[3].cubelets[:,2] = np.flip(self.faces[4].cubelets[2,:].reshape(self.faces[3].cubelets[:,2].shape),0)
+		self.faces[4].cubelets[2,:] = self.faces[1].cubelets[:,0].reshape(self.faces[4].cubelets[2,:].shape)
+		self.faces[1].cubelets[:,0] = tmp
+		self.faces[5].cubelets[:,:] = np.rot90(self.faces[5].cubelets[:,:],1,(0,1))
 		pass
 	def BackReverse(self):
+		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
+		self.faces[0].cubelets[0,:] = np.flip(self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape),1)
+		self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
+		self.faces[4].cubelets[2,:] = np.flip(self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape),1)
+		self.faces[3].cubelets[:,2] = tmp
+		self.faces[5].cubelets[:,:] = np.rot90(self.faces[5].cubelets[:,:],1,(1,0))
 		pass
 
 class CubeletColor():
@@ -199,6 +211,9 @@ class CubeletColor():
 
 	def get_color(self):
 		return self.color
+	def set_color(self,color):
+		self.color = color
+
 	def __str__(self):
 		return str(self.color)
 	def __repr__(self):
@@ -210,6 +225,17 @@ class CubeFace():
 		self.set_default_pos(x+MARGIN,y+MARGIN,width,height)
 		a = [[ CubeletColor(color) ]*3]*3
 		self.cubelets = np.matrix(a)
+		for i in range(0,self.cubelets.shape[0]) :
+			for j in range(0,self.cubelets.shape[1])  :
+				r,g,b = self.cubelets[i,j].get_color()
+				factor = (i+j+1)/2
+				if (factor<1):
+					factor = 1
+				r =int(r/factor)
+				g =int(g/factor)
+				b =int(b/factor)
+				
+				self.cubelets[i,j]= CubeletColor((r,g,b))
 		pass
 
 	def set_default_pos(self,x=0,y=0,width=100,height=100):
@@ -248,3 +274,53 @@ class CubeFace():
 			cubelet_y = cubelet_y + cubelet_height
 		return draw_cubelets
 
+
+class ControllerBoard():
+	def __init__(self):
+		self.buttons = ['Left','Right','Top','Bottom','Front','Back']
+		self.reverse_buttons = ['LeftReverse','RightReverse','TopReverse','BottomReverse','FrontReverse','BackReverse']
+		self.all_buttons = []
+		self.all_buttons.extend(self.buttons)
+		self.all_buttons.extend(self.reverse_buttons)
+		self.dict ={}
+		x=20
+		y=420
+		gap = 0
+		for text in self.buttons:
+			self.dict.update({text:(x,y+gap,60,25)})
+			gap = gap + 30
+
+		x=100
+		gap = 0
+		for text in self.reverse_buttons:
+			self.dict.update({text:(x,y+gap,100,25)})
+			gap = gap + 30
+		
+		pass
+
+	def get_draw_content(self):
+		draw_content = []
+		
+		for text in self.all_buttons:
+			x,y,width,height = self.dict.get(text,(0,0,100,100))
+			draw_content.append({
+					'type':'button',
+					'x':x,
+					'y':y,
+					'width':width,
+					'height':height,
+					'boundary':2,
+					'text':text,
+					'color':BLACK
+				})
+
+		return draw_content
+
+	def check_click(self,click_x,click_y):
+		for text in self.all_buttons:
+			x,y,w,h = self.dict.get(text)
+			xe,ye = x+w,y+h
+			# print(click_x,click_y,x,y,xe,ye)
+			if(click_x>x and click_x<xe and click_y>y and click_y<ye):
+				return text
+		return None

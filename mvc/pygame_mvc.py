@@ -26,6 +26,7 @@ class pygame_controller(Controller):
 		self.model.attach(self)
 		self.time_passed = 0
 		self.pressed_key_history = {}
+		self.dict = {}
 		pass
 
 	def initialise(self):
@@ -135,7 +136,9 @@ class pygame_controller(Controller):
 		left_m , middle_m, right_m = pygame.mouse.get_pressed()
 
 		if(left_m):
-			
+			mouse_pos =pygame.mouse.get_pos()
+			self.pressed_key_history.update({'LEFT_MOUSE_CLICK':True})
+			self.dict.update({'mouse_pos':mouse_pos})
 			pass
 
 		if(middle_m):
