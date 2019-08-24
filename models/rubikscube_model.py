@@ -12,18 +12,15 @@ last edited : 19 Jun 2018
 
 from math import *
 
-from PIL import Image
 
 import numpy as np
-import cv2
 import matplotlib.pyplot as plt
-import json 
-import io
+
 
 
 from mvc.mvc import Model
-
-
+from models.state_scorer import State
+from models.state_scorer import StateScorer
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 BLUE = (0,0,255)
@@ -42,6 +39,9 @@ class model(Model):
 	def __init__(self):
 		super().__init__()
 		self.rubikscube = RubiksCube()
+		self.state = State(self.rubikscube)
+		# self.state.get_as_array()
+		self.state_scorer = StateScorer(self.state.get_shape(),(1))
 		self.controller_board = ControllerBoard()
 		pass
 
@@ -103,21 +103,20 @@ class RubiksCube():
 
 	def Left(self):
 		tmp = self.faces[0].cubelets[:,0].copy()
+		self.faces[0].cubelets[:,0] = self.faces[5].cubelets[:,0]
+		self.faces[5].cubelets[:,0] = self.faces[4].cubelets[:,0]
+		self.faces[4].cubelets[:,0] = self.faces[2].cubelets[:,0]
+		self.faces[2].cubelets[:,0] = tmp
+		self.faces[1].cubelets[:,:] = np.rot90(self.faces[1].cubelets[:,:],1,(1,0))
+		pass
+	def LeftReverse(self):
+		tmp = self.faces[0].cubelets[:,0].copy()
 		self.faces[0].cubelets[:,0] = self.faces[2].cubelets[:,0]
 		self.faces[2].cubelets[:,0] = self.faces[4].cubelets[:,0]
 		self.faces[4].cubelets[:,0] = self.faces[5].cubelets[:,0]
 		self.faces[5].cubelets[:,0] = tmp
 		# rotating corresponding face by 90
-		self.faces[1].cubelets[:,:] = np.rot90(self.faces[1].cubelets[:,:],1,(1,0))
-		
-	def LeftReverse(self):
-		tmp = self.faces[0].cubelets[:,0].copy()
-		self.faces[0].cubelets[:,0] = self.faces[5].cubelets[:,0]
-		self.faces[5].cubelets[:,0] = self.faces[4].cubelets[:,0]
-		self.faces[4].cubelets[:,0] = self.faces[2].cubelets[:,0]
-		self.faces[2].cubelets[:,0] = tmp
 		self.faces[1].cubelets[:,:] = np.rot90(self.faces[1].cubelets[:,:],1,(0,1))
-		pass
 	def Right(self):
 		tmp = self.faces[0].cubelets[:,2].copy()
 		self.faces[0].cubelets[:,2] = self.faces[2].cubelets[:,2]
@@ -125,8 +124,7 @@ class RubiksCube():
 		self.faces[4].cubelets[:,2] = self.faces[5].cubelets[:,2]
 		self.faces[5].cubelets[:,2] = tmp
 		# rotating corresponding face by 90
-		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(0,1))
-
+		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(1,0))
 		pass
 	def RightReverse(self):
 		tmp = self.faces[0].cubelets[:,2].copy()
@@ -134,20 +132,20 @@ class RubiksCube():
 		self.faces[5].cubelets[:,2] = self.faces[4].cubelets[:,2]
 		self.faces[4].cubelets[:,2] = self.faces[2].cubelets[:,2]
 		self.faces[2].cubelets[:,2] = tmp
-		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(1,0))
+		self.faces[3].cubelets[:,:] = np.rot90(self.faces[3].cubelets[:,:],1,(0,1))
 		pass
 	def Top(self):
-		tmp = np.flip(self.faces[1].cubelets[0,:].reshape(self.faces[5].cubelets[2,:].shape).copy(),1)
+		tmp = self.faces[1].cubelets[0,::-1,:].copy()
 		self.faces[1].cubelets[0,:] = self.faces[2].cubelets[0,:].reshape(self.faces[1].cubelets[0,:].shape)
 		self.faces[2].cubelets[0,:] = self.faces[3].cubelets[0,:].reshape(self.faces[2].cubelets[0,:].shape)
-		self.faces[3].cubelets[0,:] = np.flip(self.faces[5].cubelets[2,:].reshape(self.faces[3].cubelets[0,:].shape),1)
-		self.faces[5].cubelets[2,:] =  tmp
+		self.faces[3].cubelets[0,:,:] = self.faces[5].cubelets[2,::-1,:]
+		self.faces[5].cubelets[2,:,:] =  tmp
 		self.faces[0].cubelets[:,:] = np.rot90(self.faces[0].cubelets[:,:],1,(1,0))
 		pass
 	def TopReverse(self):
 		tmp = self.faces[1].cubelets[0,:].reshape(self.faces[2].cubelets[0,:].shape).copy()
-		self.faces[1].cubelets[0,:] = np.flip(self.faces[5].cubelets[2,:].reshape(self.faces[1].cubelets[0,:].shape),1)
-		self.faces[5].cubelets[2,:] = np.flip(self.faces[3].cubelets[0,:].reshape(self.faces[5].cubelets[2,:].shape),1)
+		self.faces[1].cubelets[0,:,:] = self.faces[5].cubelets[2,::-1,:]
+		self.faces[5].cubelets[2,:,:] = self.faces[3].cubelets[0,::-1,:]
 		self.faces[3].cubelets[0,:] = self.faces[2].cubelets[0,:].reshape(self.faces[3].cubelets[0,:].shape)	
 		self.faces[2].cubelets[0,:] = tmp
 		self.faces[0].cubelets[:,:] = np.rot90(self.faces[0].cubelets[:,:],1,(0,1))
@@ -186,8 +184,6 @@ class RubiksCube():
 		self.faces[1].cubelets[:,2] = tmp		
 		self.faces[2].cubelets[:,:] = np.rot90(self.faces[2].cubelets[:,:],1,(0,1))
 		pass
-
-
 	def Back(self):
 		tmp = np.flip(self.faces[0].cubelets[0,:].reshape(self.faces[1].cubelets[:,0].shape).copy(),0)
 		self.faces[0].cubelets[0,:] = self.faces[3].cubelets[:,2].reshape(self.faces[0].cubelets[0,:].shape)
@@ -205,29 +201,19 @@ class RubiksCube():
 		self.faces[5].cubelets[:,:] = np.rot90(self.faces[5].cubelets[:,:],1,(1,0))
 		pass
 
-class CubeletColor():
-	def __init__(self,color):
-		self.color = color
-
-	def get_color(self):
-		return self.color
-	def set_color(self,color):
-		self.color = color
-
-	def __str__(self):
-		return str(self.color)
-	def __repr__(self):
-		return str(self.color)
 
 class CubeFace():
 	def __init__(self,color,id=-1,x=0,y=0,width=100,height=100):
 		self.id = id
 		self.set_default_pos(x+MARGIN,y+MARGIN,width,height)
-		a = [[ CubeletColor(color) ]*3]*3
-		self.cubelets = np.matrix(a)
+		a = [[ list(color) ]*3]*3
+		self.cubelets = np.array(a)
+		# print(self.cubelets)
+		print(self.cubelets.shape)
+		
 		for i in range(0,self.cubelets.shape[0]) :
 			for j in range(0,self.cubelets.shape[1])  :
-				r,g,b = self.cubelets[i,j].get_color()
+				r,g,b = self.cubelets[i,j,:]
 				factor = (i+j+1)/2
 				if (factor<1):
 					factor = 1
@@ -235,9 +221,11 @@ class CubeFace():
 				g =int(g/factor)
 				b =int(b/factor)
 				
-				self.cubelets[i,j]= CubeletColor((r,g,b))
-		pass
+				self.cubelets[i,j,:]= [r,g,b]
+		# pass
 
+	def get_as_array(self):
+		return self.cubelets
 	def set_default_pos(self,x=0,y=0,width=100,height=100):
 		self.posx=x
 		self.posy=y
@@ -267,7 +255,7 @@ class CubeFace():
 					'outline_color':BLACK,
 					'outline_boundary':outline_boundary,
 					'boundary':0,
-					'color':self.cubelets[i,j].get_color()
+					'color':tuple(self.cubelets[i,j])
 				})
 				cubelet_x = cubelet_x + cubelet_width
 			cubelet_x = x
@@ -324,3 +312,22 @@ class ControllerBoard():
 			if(click_x>x and click_x<xe and click_y>y and click_y<ye):
 				return text
 		return None
+
+
+# class CubeletColor():
+# 	def __init__(self,color):
+# 		self.color = color
+
+# 	def get_color(self):
+# 		return self.color
+# 	def set_color(self,color):
+# 		self.color = color
+
+# 	def get_shape(self):
+# 		return [len(self.color)]
+# 	def get_as_array(self):
+# 		return np.matrix(self.color)
+# 	def __str__(self):
+# 		return str(self.color)
+# 	def __repr__(self):
+# 		return str(self.color)
