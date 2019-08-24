@@ -153,26 +153,26 @@ class RubiksCube():
 		pass
 	def Bottom(self):
 		tmp = self.faces[1].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape).copy()
-		self.faces[1].cubelets[2,:] = np.flip(self.faces[5].cubelets[0,:].reshape(self.faces[1].cubelets[2,:].shape),1)
-		self.faces[5].cubelets[0,:] = np.flip(self.faces[3].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape),1)
+		self.faces[1].cubelets[2,:,:] = self.faces[5].cubelets[0,::-1,:]
+		self.faces[5].cubelets[0,:,:] = self.faces[3].cubelets[2,::-1,:]
 		self.faces[3].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[3].cubelets[2,:].shape)
 		self.faces[2].cubelets[2,:] = tmp
 		self.faces[4].cubelets[:,:] = np.rot90(self.faces[4].cubelets[:,:],1,(1,0))
 
 		pass
 	def BottomReverse(self):
-		tmp = np.flip(self.faces[1].cubelets[2,:].reshape(self.faces[5].cubelets[0,:].shape).copy(),1)
+		tmp = self.faces[1].cubelets[2,::-1,:].copy()
 		self.faces[1].cubelets[2,:] = self.faces[2].cubelets[2,:].reshape(self.faces[1].cubelets[2,:].shape)
 		self.faces[2].cubelets[2,:] = self.faces[3].cubelets[2,:].reshape(self.faces[2].cubelets[2,:].shape)
-		self.faces[3].cubelets[2,:] = np.flip(self.faces[5].cubelets[0,:].reshape(self.faces[3].cubelets[2,:].shape),1)	
-		self.faces[5].cubelets[0,:] =  tmp
+		self.faces[3].cubelets[2,:,:] = self.faces[5].cubelets[0,::-1,:]
+		self.faces[5].cubelets[0,:,:] =  tmp
 		self.faces[4].cubelets[:,:] = np.rot90(self.faces[4].cubelets[:,:],1,(0,1))
 		pass
 	def Front(self):
 		tmp = self.faces[0].cubelets[2,:].reshape(self.faces[3].cubelets[:,0].shape).copy()
-		self.faces[0].cubelets[2,:] = np.flip(self.faces[1].cubelets[:,2].reshape(self.faces[0].cubelets[2,:].shape),1)
+		self.faces[0].cubelets[2,:,:] = self.faces[1].cubelets[::-1,2,:]
 		self.faces[1].cubelets[:,2] = self.faces[4].cubelets[0,:].reshape(self.faces[1].cubelets[:,2].shape)
-		self.faces[4].cubelets[0,:] = np.flip(self.faces[3].cubelets[:,0].reshape(self.faces[4].cubelets[0,:].shape),1)
+		self.faces[4].cubelets[0,:,:] = self.faces[3].cubelets[::-1,0,:]
 		self.faces[3].cubelets[:,0] = tmp
 		self.faces[2].cubelets[:,:] = np.rot90(self.faces[2].cubelets[:,:],1,(1,0))
 		pass
@@ -194,9 +194,9 @@ class RubiksCube():
 		pass
 	def BackReverse(self):
 		tmp = self.faces[0].cubelets[0,:].reshape(self.faces[3].cubelets[:,2].shape).copy()
-		self.faces[0].cubelets[0,:] = np.flip(self.faces[1].cubelets[:,0].reshape(self.faces[0].cubelets[0,:].shape),1)
+		self.faces[0].cubelets[0,:,:] = self.faces[1].cubelets[::-1,0,:]
 		self.faces[1].cubelets[:,0] = self.faces[4].cubelets[2,:].reshape(self.faces[1].cubelets[:,0].shape)
-		self.faces[4].cubelets[2,:] = np.flip(self.faces[3].cubelets[:,2].reshape(self.faces[4].cubelets[2,:].shape),1)
+		self.faces[4].cubelets[2,:,:] = self.faces[3].cubelets[::-1,2,:]
 		self.faces[3].cubelets[:,2] = tmp
 		self.faces[5].cubelets[:,:] = np.rot90(self.faces[5].cubelets[:,:],1,(1,0))
 		pass
