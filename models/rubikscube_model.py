@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 
 
 from mvc.mvc import Model
-from models.state_scorer import State
-from models.state_scorer import StateScorer
+# from models.state_scorer import State
+# from models.state_scorer import StateScorer
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 BLUE = (0,0,255)
@@ -39,9 +39,9 @@ class model(Model):
 	def __init__(self):
 		super().__init__()
 		self.rubikscube = RubiksCube()
-		self.state = State(self.rubikscube)
+		# self.state = State(self.rubikscube)
 		# self.state.get_as_array()
-		self.state_scorer = StateScorer(self.state.get_shape(),(1))
+		# self.state_scorer = StateScorer(self.state.get_shape(),(1))
 		self.controller_board = ControllerBoard()
 		pass
 
